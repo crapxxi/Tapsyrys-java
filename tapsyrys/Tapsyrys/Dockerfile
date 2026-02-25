@@ -3,14 +3,19 @@ FROM maven:3.9.6-amazoncorretto-17 AS build
 WORKDIR /app
 COPY . .
 
-# Ищем pom.xml в любой подпапке и запускаем сборку именно там
-RUN mvn -f $(find . -name "pom.xml" | head -n 1) clean package -DskipTests
+# Собираем проект, указывая точный путь к pom.xml
+RUN mvn -f Tapsyrys/pom.xml clean package -DskipTests
 
 # Stage 2: Запуск
 FROM amazoncorretto:17-alpine
 WORKDIR /app
 
-# Копируем созданный JAR файл, где бы он ни лежал после сборки
-COPY --from=build /app/**/target/*.jar app.jar
+# Копируем файл из конкретной папки.
+# ВНИМАНИЕ: Если проект называется Tapsyrys, jar будет лежать там.
+COPY --from=build /app/Tapsyrys/target/*.jar /app/app.jar
 
-ENTRYPOINT ["java", "-Xmx320m", "-Xss512k", "-jar", "app.jar"]
+# Эта команда выведет список файлов в лог при запуске, чтобы мы проверили наличие
+RUN ls -la /app/
+
+# Лимит памяти
+ENTRYPOINT ["java", "-Xmx300m", "-Xss512k", "-jar", "/app/app.jar"]
