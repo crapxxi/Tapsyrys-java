@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     Optional<Supplier> findAllByCategory(Supplier supplier);
+    Optional<Supplier> findSupplierByTelegramId(Long telegramId);
 }
