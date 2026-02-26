@@ -17,4 +17,7 @@ public class Supplier {
     private String username;
     private String phone;
     private String category;
+
+    @Column(name = "telegram_id")
+    private Long telegramId;
 }

@@ -10,12 +10,10 @@ import com.tapsyrys.tapsyrys.Repositories.SupplierProductRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.hibernate.annotations.TypeRegistration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -69,6 +67,20 @@ public class ProductRestController {
                         product.getFirm(),
                         product.getCategory()
                 )).toList();
+    }
+
+    @PostMapping("/add")
+    @Transactional
+    @Operation(summary = "Загрузка товаров")
+    public ResponseEntity<?> addProduct(@RequestBody ProductResponse productResponse) {
+        Product product = new Product();
+        product.setName(productResponse.name());
+        product.setFirm(productResponse.firm());
+        product.setCategory(productResponse.category());
+
+        Product savedProduct = productRepository.save(product);
+        ProductResponse response = new ProductResponse(savedProduct.getId(), savedProduct.getName(), savedProduct.getFirm(), savedProduct.getCategory());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
 }
