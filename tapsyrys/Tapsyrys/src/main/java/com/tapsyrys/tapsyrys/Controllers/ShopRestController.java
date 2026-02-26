@@ -36,8 +36,24 @@ public class ShopRestController {
             cleanPhone = "+" + cleanPhone;
         }
         return shopRepository.findByPhone(cleanPhone).map(
-            shop -> new ShopResponse(shop.getId(), shop.getName(),shop.getUsername(), shop.getLocation(), shop.getPhone())
+            shop -> new ShopResponse(shop.getId(), shop.getName(),shop.getUsername(), shop.getLocation(), shop.getPhone(), shop.getTelegramId())
         ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Таких магазинов нет"));
+    }
+
+    @GetMapping("/get")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Получить магазин по телеграмм айди")
+    public ShopResponse getShopByTelegramId(@RequestParam Long telegramId) {
+        return shopRepository.findByTelegramId(telegramId)
+                .map(shop -> new ShopResponse(
+                        shop.getId(),
+                        shop.getName(),
+                        shop.getUsername(),
+                        shop.getLocation(),
+                        shop.getPhone(),
+                        shop.getTelegramId()
+                )
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Такого магазина нет"));
     }
 
     @PostMapping("/register")
@@ -54,6 +70,7 @@ public class ShopRestController {
             phone = "+7" + phone.substring(1);
         }
         shop.setPhone(phone);
+        shop.setTelegramId(shopResponse.telegramId());
 
         Shop savedShop = shopRepository.save(shop);
         ShopResponse response = new ShopResponse(
@@ -61,7 +78,8 @@ public class ShopRestController {
                 savedShop.getName(),
                 savedShop.getUsername(),
                 savedShop.getLocation(),
-                savedShop.getPhone()
+                savedShop.getPhone(),
+                savedShop.getTelegramId()
         );
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);

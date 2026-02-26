@@ -17,4 +17,8 @@ public class Shop {
     private String username;
     private String location;
     private String phone;
+
+    @Column(name="telegram_id", unique = true)
+    private Long telegramId;
+
 }
