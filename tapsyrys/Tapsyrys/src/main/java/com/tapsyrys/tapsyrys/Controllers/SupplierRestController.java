@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/suppliers")
 @Tag(name="Управление поставщиками")
@@ -47,4 +49,36 @@ public class SupplierRestController {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping("/all")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Получить всех поставщиков")
+    public List<SupplierResponse> getAll() {
+        return supplierRepository.findAll().stream().map(
+                supplier -> new SupplierResponse(supplier.getId(), supplier.getName(), supplier.getUsername(), supplier.getPhone(), supplier.getCategory(), supplier.getTelegramId())
+        ).toList();
+    }
+
+    @GetMapping("/category")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Получить поставщика по категории")
+    public List<SupplierResponse> getSupplierByCategory(@RequestParam String category) {
+        return supplierRepository.findAllByCategory(category).stream().map(
+                supplier -> new SupplierResponse(supplier.getId(),supplier.getName() ,supplier.getUsername(), supplier.getPhone(), supplier.getCategory(), supplier.getTelegramId())
+        ).toList();
+    }
+
+    @GetMapping("/info")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Получить поставщика по номеру телефона")
+    public SupplierResponse getSupplierByPhone(@RequestParam String phone) {
+        phone = phone.trim();
+        if(phone.startsWith("8"))
+            phone = "+7" + phone.substring(1);
+
+        return supplierRepository.findSupplierByPhone(phone).map(
+                supplier -> new SupplierResponse(supplier.getId(), supplier.getName(), supplier.getUsername(), supplier.getPhone(), supplier.getCategory(), supplier.getTelegramId())
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Нет таких поставщиков"));
+    }
+
 }
