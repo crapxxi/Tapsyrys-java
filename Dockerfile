@@ -1,16 +1,17 @@
-FROM maven:3.9.6-amazoncorretto-17 AS build
-WORKDIR /app
-COPY . .
-
-RUN POM_PATH=$(find . -name "pom.xml" | head -n 1) && \
-    mvn -f "$POM_PATH" clean package -DskipTests
-
-RUN JAR_PATH=$(find . -path "*/target/*.jar" ! -name "*plain.jar" | head -n 1) && \
-    cp "$JAR_PATH" /app/app.jar
-
-FROM amazoncorretto:17-alpine
+FROM maven:3.8.4-openjdk-17 as builder
 WORKDIR /app
 
-COPY --from=build /app/app.jar .
+COPY pom.xml .
 
-ENTRYPOINT ["java", "-Xmx300m", "-Xss512k", "-jar", "app.jar"]
+RUN mvn dependency:go-offline
+
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM openjdk:17-slim
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8080
+ENTRYPOINT["java","-jar","app.jar"]
